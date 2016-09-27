@@ -86,8 +86,10 @@ public class FsAdaptorTest {
   @Before
   public void setUp() throws Exception {
     rootDocId = delegate.newDocId(rootPath);
+    config.addKey("filesystemadaptor.dateFormat", "");
+    
     adaptor.initConfig(config);
-    config.overrideKey("filesystemadaptor.src", root.getPath());
+    config.overrideKey("filesystemadaptor.src", root.getPath());    
     config.overrideKey("adaptor.incrementalPollPeriodSecs", "0");
   }
 
@@ -133,7 +135,7 @@ public class FsAdaptorTest {
   @Test
   public void testAdaptorInitDfsLink() throws Exception {
     root.setIsDfsLink(true);
-    root.setDfsActiveStorage(Paths.get("\\\\dfshost\\share"));
+    root.setDfsActiveStorage(Paths.get("\\\\SADA-HQ-DELOPT7\\test_files"));
     root.setDfsShareAclView(MockFile.FULL_ACCESS_ACLVIEW);
     adaptor.init(context);
   }
@@ -221,6 +223,7 @@ public class FsAdaptorTest {
   public void testAdaptorInitMultipleStartPaths() throws Exception {
     MultiRootMockFileDelegate delegate = getMultiRootFileDelegate();
     AdaptorContext context = new MockAdaptorContext();
+    context.getConfig().addKey("filesystemadaptor.dateFormat", "");
     FsAdaptor adaptor = getMultiRootFsAdaptor(context, delegate);
     adaptor.init(context);
   }
@@ -425,7 +428,7 @@ public class FsAdaptorTest {
 
   @Test
   public void testGetDocIdsDfsLink() throws Exception {
-    Path uncPath = Paths.get("\\\\dfshost\\share");
+    Path uncPath = Paths.get("\\\\SADA-HQ-DELOPT7\\test_files");
     root.setIsDfsLink(true);
     root.setDfsActiveStorage(uncPath);
     root.setDfsShareAclView(MockFile.FULL_ACCESS_ACLVIEW);
@@ -449,6 +452,7 @@ public class FsAdaptorTest {
     AccumulatingDocIdPusher pusher =
         (AccumulatingDocIdPusher) context.getDocIdPusher();
     FsAdaptor adaptor = getMultiRootFsAdaptor(context, delegate);
+    context.getConfig().addKey("filesystemadaptor.dateFormat", "");
     adaptor.init(context);
     adaptor.getDocIds(pusher);
 
@@ -1398,7 +1402,7 @@ public class FsAdaptorTest {
   public void testAdaptorInitDfsDenyShareAclAccess() throws Exception {
     root = new DenyShareAclAccessMockFile(ROOT, true);
     root.setIsDfsLink(true);
-    root.setDfsActiveStorage(Paths.get("\\\\dfshost\\share"));
+    root.setDfsActiveStorage(Paths.get("\\\\SADA-HQ-DELOPT7\\test_files"));
     root.setDfsShareAclView(MockFile.FULL_ACCESS_ACLVIEW);
     delegate = new MockFileDelegate(root);
     adaptor = new FsAdaptor(delegate);
@@ -1410,7 +1414,7 @@ public class FsAdaptorTest {
   public void testAdaptorInitDfsDenyDfsShareAclAccess() throws Exception {
     root = new DenyDfsShareAclAccessMockFile(ROOT, true);
     root.setIsDfsLink(true);
-    root.setDfsActiveStorage(Paths.get("\\\\dfshost\\share"));
+    root.setDfsActiveStorage(Paths.get("\\\\SADA-HQ-DELOPT7\\test_files"));
     delegate = new MockFileDelegate(root);
     adaptor = new FsAdaptor(delegate);
     thrown.expect(IOException.class);

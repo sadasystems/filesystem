@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeSet;
@@ -345,7 +346,8 @@ public class FsAdaptor extends AbstractAdaptor {
   private boolean resultLinksToShare;
   
   /** Date Formatting **/
-  private static final String TARGET_DATE_FORMAT = "filesystemadaptor.dateFormat";
+  private static final String SOURCE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssXXX";
+  private static final String CONFIG_TARGET_DATE_FORMAT = "filesystemadaptor.dateFormat";
   private String targetDateFormat = null;
   
   public FsAdaptor() {
@@ -404,7 +406,7 @@ public class FsAdaptor extends AbstractAdaptor {
     // Increase the max feed size, which also increases the
     // asyncDocIdSenderQueueSize to 40,000 entries. This would
     // make a full queue about 10MB in size.
-    config.overrideKey("feed.maxUrls", "20000");
+    config.overrideKey("feed.maxUrls", "20000");    
   }
 
   @Override
@@ -523,7 +525,7 @@ public class FsAdaptor extends AbstractAdaptor {
       }, statusUpdateIntervalMillis, statusUpdateIntervalMillis);
     
     /** get date formatting configuration **/
-    targetDateFormat = config.getValue(TARGET_DATE_FORMAT);
+    targetDateFormat = config.getValue(CONFIG_TARGET_DATE_FORMAT);
     if (targetDateFormat != null && targetDateFormat.isEmpty()){
     	targetDateFormat = null;
     }
@@ -889,6 +891,37 @@ public class FsAdaptor extends AbstractAdaptor {
     }
     log.exiting("FsAdaptor", "getDocContent");
   }
+  
+  private String reformatDate(String destFormat, String dateStr){
+	  //assumes that string is of format: yyyy-MM-dd'T'HH:mm:ssXXX
+	  if (SOURCE_DATE_FORMAT == null || destFormat == null || SOURCE_DATE_FORMAT.equals(destFormat)){
+		  return dateStr;
+	  }
+	  
+	  TimeZone tz = null;
+	  if (dateStr.endsWith("Z")){
+		  tz = TimeZone.getTimeZone("UTC");
+	  }else{
+		  tz = TimeZone.getTimeZone("GMT"+dateStr.substring(dateStr.length()-6));
+	  }  
+	  
+	  try {
+		SimpleDateFormat sourceDF  = new SimpleDateFormat(SOURCE_DATE_FORMAT);
+		sourceDF.setTimeZone(tz);
+		Calendar sourceCal = Calendar.getInstance(tz, Locale.US);
+		sourceCal.setTime(sourceDF.parse(dateStr));
+		
+		SimpleDateFormat targetDF = new SimpleDateFormat(destFormat);
+		targetDF.setTimeZone(tz);
+		Calendar targetCal = Calendar.getInstance(tz, Locale.US);
+		targetCal.setTime(sourceCal.getTime());
+		
+		return targetDF.format(targetCal.getTime());
+	  } catch (ParseException e) {
+		e.printStackTrace();
+	  }
+	  return dateStr;
+  }
 
   private void addFormattedDates(String docPath, Response resp) {
     if (targetDateFormat == null){
@@ -903,15 +936,16 @@ public class FsAdaptor extends AbstractAdaptor {
 	  ParseContext context = new ParseContext();
 	  FileInputStream inputstream = new FileInputStream(file);
 	  parser.parse(inputstream, handler, metadata, context);	  	  
-	  /*
+	  
 	  System.out.println(docPath);	  
 	  
 	  for (String name: metadata.names()){
 		  System.out.println(name+" = "+metadata.get(name));  
-	  }*/
+	  }
 	  
 	  String creationDateStr = metadata.get("meta:creation-date");
-	  if(creationDateStr != null){		  
+	  if(creationDateStr != null){
+		  creationDateStr = reformatDate(targetDateFormat, creationDateStr);
 		  resp.addMetadata("CreationDate_formatted", creationDateStr);
 		  log.info(String.format("CreationDate_formatted for %s: %s", docPath, creationDateStr));
 	  }else{
@@ -920,14 +954,12 @@ public class FsAdaptor extends AbstractAdaptor {
 	  
 	  String modDateStr = metadata.get("meta:save-date");
 	  if(modDateStr != null){
+		  modDateStr = reformatDate(targetDateFormat, modDateStr);
 		  resp.addMetadata("ModDate_formatted", modDateStr);
 		  log.info(String.format("ModDate_formatted for %s: %s", docPath, modDateStr));
 	  }else{
 		  log.info("No ModDate found for "+docPath);
 	  }
-	  /*
-	 "yyyy-MM-dd'T'HH:mm:ssXXX"
-	  */
     } catch (FileNotFoundException e) {
       log.info("File not found: "+docPath);
 	  e.printStackTrace();

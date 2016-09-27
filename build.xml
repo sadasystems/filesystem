@@ -34,6 +34,8 @@
     <fileset dir="${lib.dir}">
       <include name="jna.jar"/>
       <include name="jna-platform.jar"/>
+      <include name="adaptor-4.1.0-withlib.jar"/>
+      <include name="tika-app-1.13-dateformat.jar"/>
     </fileset>
     <pathelement location="${adaptor.jar}"/>
   </path>
@@ -60,49 +62,9 @@
     depends="-real-build,-check-instrument-uptodate,clean-instrument"
     description="Build source"/>
 
-  <target name="-plexi-check-submodule">
-    <condition property="plexi.is-not-submodule">
-      <not>
-        <equals arg1="${adaptor.jar.default}" arg2="${adaptor.jar}"/>
-      </not>
-    </condition>
-    <condition property="tmp.plexi.valid-setup">
-      <or>
-        <isset property="plexi.is-not-submodule"/>
-        <available file="${adaptor.clone.dir}/.git"/>
-      </or>
-    </condition>
-    <fail unless="tmp.plexi.valid-setup">Invalid setup:
-No lib/plexi submodule and using default adaptor.jar property.
 
-You need to run "git submodule init; git submodule update" to initialize the
-lib/plexi submodule or add the the command line argument
--Dadaptor.jar=path/to/adaptor-withlib.jar to point to the adaptor library.
-    </fail>
-  </target>
 
-  <target name="-plexi-test-uptodate" depends="-plexi-check-submodule">
-    <condition property="plexi.uptodate">
-      <or>
-        <isset property="plexi.is-not-submodule"/>
-        <uptodate targetfile="${adaptor.jar}">
-          <srcfiles dir="${adaptor.clone.dir}"
-            excludes=".git/** build/** dist/** **.swp"/>
-        </uptodate>
-      </or>
-    </condition>
-  </target>
-
-  <target name="-plexi-build" depends="-plexi-test-uptodate"
-    unless="plexi.uptodate">
-    <echo message="Detected Plexi changes. Re-packaging Plexi..."/>
-    <ant antfile="${adaptor.clone.dir}/build.xml" dir="${adaptor.clone.dir}"
-      target="package" inheritAll="false">
-      <property name="adaptorlib.suffix" value=""/>
-    </ant>
-  </target>
-
-  <target name="-real-build" depends="-plexi-build">
+  <target name="-real-build">
     <mkdir dir="${build-src.dir}"/>
 
     <javac srcdir="${src.dir}" destdir="${build-src.dir}" debug="true"

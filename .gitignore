@@ -15,3 +15,9 @@ Plexi.iml
 
 # NetBeans files
 nbproject/
+/bin/
+
+.settings
+.settings/
+.classpath
+.project

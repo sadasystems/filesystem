@@ -14,34 +14,8 @@
 
 package com.google.enterprise.adaptor.fs;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.enterprise.adaptor.AbstractAdaptor;
-import com.google.enterprise.adaptor.Acl;
-import com.google.enterprise.adaptor.Acl.InheritanceType;
-import com.google.enterprise.adaptor.AdaptorContext;
-import com.google.enterprise.adaptor.AuthnIdentity;
-import com.google.enterprise.adaptor.AuthzAuthority;
-import com.google.enterprise.adaptor.AuthzStatus;
-import com.google.enterprise.adaptor.Config;
-import com.google.enterprise.adaptor.DocId;
-import com.google.enterprise.adaptor.DocIdPusher;
-import com.google.enterprise.adaptor.DocIdPusher.Record;
-import com.google.enterprise.adaptor.InvalidConfigurationException;
-import com.google.enterprise.adaptor.Principal;
-import com.google.enterprise.adaptor.Request;
-import com.google.enterprise.adaptor.Response;
-import com.google.enterprise.adaptor.StartupException;
-import com.google.enterprise.adaptor.Status;
-import com.google.enterprise.adaptor.StatusSource;
-import com.google.enterprise.adaptor.UserPrincipal;
-
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,6 +53,40 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.Parser;
+import org.xml.sax.helpers.DefaultHandler;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.enterprise.adaptor.AbstractAdaptor;
+import com.google.enterprise.adaptor.Acl;
+import com.google.enterprise.adaptor.Acl.InheritanceType;
+import com.google.enterprise.adaptor.AdaptorContext;
+import com.google.enterprise.adaptor.AuthnIdentity;
+import com.google.enterprise.adaptor.AuthzAuthority;
+import com.google.enterprise.adaptor.AuthzStatus;
+import com.google.enterprise.adaptor.Config;
+import com.google.enterprise.adaptor.DocId;
+import com.google.enterprise.adaptor.DocIdPusher;
+import com.google.enterprise.adaptor.DocIdPusher.Record;
+import com.google.enterprise.adaptor.InvalidConfigurationException;
+import com.google.enterprise.adaptor.Principal;
+import com.google.enterprise.adaptor.Request;
+import com.google.enterprise.adaptor.Response;
+import com.google.enterprise.adaptor.StartupException;
+import com.google.enterprise.adaptor.Status;
+import com.google.enterprise.adaptor.StatusSource;
+import com.google.enterprise.adaptor.UserPrincipal;
 
 // TODO(mifern): Support\Verify that we can handle \\host\C$ shares.
 // TODO(mifern): Support\Verify that we can handle \\host only shares.
@@ -336,6 +344,10 @@ public class FsAdaptor extends AbstractAdaptor {
 
   private boolean resultLinksToShare;
   
+  /** Date Formatting **/
+  private static final String TARGET_DATE_FORMAT = "filesystemadaptor.dateFormat";
+  private String targetDateFormat = null;
+  
   public FsAdaptor() {
     // At the moment, we only support Windows.
     if (System.getProperty("os.name").startsWith("Windows")) {
@@ -509,6 +521,13 @@ public class FsAdaptor extends AbstractAdaptor {
           }
         }
       }, statusUpdateIntervalMillis, statusUpdateIntervalMillis);
+    
+    /** get date formatting configuration **/
+    targetDateFormat = config.getValue(TARGET_DATE_FORMAT);
+    if (targetDateFormat != null && targetDateFormat.isEmpty()){
+    	targetDateFormat = null;
+    }
+    
   }
 
   @Override
@@ -817,6 +836,12 @@ public class FsAdaptor extends AbstractAdaptor {
     resp.setLastModified(new Date(attrs.lastModifiedTime().toMillis()));
     resp.addMetadata("Creation Time", dateFormatter.get().format(
         new Date(attrs.creationTime().toMillis())));
+    
+    //add formatted CreationDate and ModDate
+    if (!docIsDirectory){
+    	addFormattedDates(doc.toString(), resp);
+    }
+    
 
     // TODO(mifern): Include extended attributes.
 
@@ -865,7 +890,54 @@ public class FsAdaptor extends AbstractAdaptor {
     log.exiting("FsAdaptor", "getDocContent");
   }
 
-  /**
+  private void addFormattedDates(String docPath, Response resp) {
+    if (targetDateFormat == null){
+    	return;
+    }
+	  
+    File file = new File(docPath);
+	try {
+	  Parser parser = new AutoDetectParser();
+	  DefaultHandler handler = new DefaultHandler();
+	  Metadata metadata = new Metadata();
+	  ParseContext context = new ParseContext();
+	  FileInputStream inputstream = new FileInputStream(file);
+	  parser.parse(inputstream, handler, metadata, context);	  	  
+	  /*
+	  System.out.println(docPath);	  
+	  
+	  for (String name: metadata.names()){
+		  System.out.println(name+" = "+metadata.get(name));  
+	  }*/
+	  
+	  String creationDateStr = metadata.get("meta:creation-date");
+	  if(creationDateStr != null){		  
+		  resp.addMetadata("CreationDate_formatted", creationDateStr);
+		  log.info(String.format("CreationDate_formatted for %s: %s", docPath, creationDateStr));
+	  }else{
+		  log.info("No CreationDate found for "+docPath);
+	  }
+	  
+	  String modDateStr = metadata.get("meta:save-date");
+	  if(modDateStr != null){
+		  resp.addMetadata("ModDate_formatted", modDateStr);
+		  log.info(String.format("ModDate_formatted for %s: %s", docPath, modDateStr));
+	  }else{
+		  log.info("No ModDate found for "+docPath);
+	  }
+	  /*
+	 "yyyy-MM-dd'T'HH:mm:ssXXX"
+	  */
+    } catch (FileNotFoundException e) {
+      log.info("File not found: "+docPath);
+	  e.printStackTrace();
+	} catch (Exception e) {
+	  log.info("Metadata parsing error: "+docPath);
+	  e.printStackTrace();
+	} 
+}
+
+/**
    * Returns the parent of a Path, or its root if it has no parent,
    * or null if already at root.
    *

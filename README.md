@@ -46,7 +46,7 @@ The Application shall be deemed acceptable if it meets the following criteria:
 5. Generated jar file will be inside the **dist** folder. Use the *adaptor-fs-\<VERSION\>-withlib.jar*
 
 ## Deployment Instructions
-1. Download the Filesystem v4.1.0 installer
+1. Download the [Filesystem v4.1.0 installer](https://github.com/googlegsa/filesystem/releases/download/v4.1.0/fs-install-4.1.0.exe)
 
 2. Follow the installation instructions in the [Filesystem Connector v4.1.0 documentation]( https://static.googleusercontent.com/media/www.google.com/en//support/enterprise/static/gsa/docs/admin/connectors/40/410/DeployingtheConnectorforFileSystems.pdf)
 

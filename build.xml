@@ -29,14 +29,17 @@
   </condition>
   <!-- If adaptor.version isn't set, simply use the current date. -->
   <property name="adaptor.suffix" value="-${DSTAMP}"/>
+	
+	  <!-- If adaptor.version isn't set, simply use the current date. -->
+	  <property name="tika.jar" value="${lib.dir}\tika-app-1.13-dateformat.jar"/>
 
   <path id="adaptor.build.classpath">
     <fileset dir="${lib.dir}">
       <include name="jna.jar"/>
       <include name="jna-platform.jar"/>
       <include name="adaptor-4.1.0-withlib.jar"/>
-      <include name="tika-app-1.13-dateformat.jar"/>
     </fileset>
+  	<pathelement location="${tika.jar}"/>
     <pathelement location="${adaptor.jar}"/>
   </path>
 

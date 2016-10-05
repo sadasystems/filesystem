@@ -43,7 +43,7 @@ The Application shall be deemed acceptable if it meets the following criteria:
   * *If adaptor.version is not provided, the current date will be used as adaptor suffix. Example: adaptor-fs-20160927-withlib.jar*
   * *If tika.jar is not provided, the current Tika jar file in the lib folder (tika-app-1.13-dateformat.jar) will be used. Get the latest tika app for gilead from https://github.com/sadasystems/tika/tree/gsa-tika-gilead*
   
-5. Unzip the file **adaptor-fs-\<VERSION\>-bin.zip** inside the **dist** folder. 
+5. Unzip the file *adaptor-fs-\<VERSION\>-bin.zip* inside the **dist** folder. 
 6. Use the *adaptor-fs-\<VERSION\>-withlib.jar*
 
 ## Deployment Instructions

@@ -19,9 +19,8 @@ Formats to be updated:
 ## Success Criteria
 
 The Application shall be deemed acceptable if it meets the following criteria:
-* Existing metadata with dates are retained
 * CreationDate and ModDate are processed for formatting
-* Formatted dates are saved in two new metadata: CreationDate_formatted, ModDate_formatted
+* Existing metadata with dates are retained. Formatted dates are saved in two new metadata: CreationDate_formatted, ModDate_formatted
 * Formatted dates are shown in search results (requires front-end change)
 
 ## Build Instructions

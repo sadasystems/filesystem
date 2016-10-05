@@ -59,4 +59,4 @@ The Application shall be deemed acceptable if it meets the following criteria:
   filesystemadaptor.dateFormat=yyyy-MM-dd'T'HH:mm:ssXXX
   ```
   
-5. Run the connector as a service. Refer to the instructions in the [Administration Guide] (https://static.googleusercontent.com/media/www.google.com/en//support/enterprise/static/gsa/docs/admin/connectors/40/410/AdministrationGuideforGoogleConnectors.pdf)
+5. Run the connector as a service. Refer to the instructions under the "*Run a connector as a service on Windows*" section of the [Administration Guide] (https://static.googleusercontent.com/media/www.google.com/en//support/enterprise/static/gsa/docs/admin/connectors/40/410/AdministrationGuideforGoogleConnectors.pdf)

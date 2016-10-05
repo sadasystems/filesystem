@@ -43,7 +43,8 @@ The Application shall be deemed acceptable if it meets the following criteria:
   * *If adaptor.version is not provided, the current date will be used as adaptor suffix. Example: adaptor-fs-20160927-withlib.jar*
   * *If tika.jar is not provided, the current Tika jar file in the lib folder (tika-app-1.13-dateformat.jar) will be used. Get the latest tika app for gilead from https://github.com/sadasystems/tika/tree/gsa-tika-gilead*
   
-5. Generated jar file will be inside the **dist** folder. Use the *adaptor-fs-\<VERSION\>-withlib.jar*
+5. Unzip the file **adaptor-fs-\<VERSION\>-bin.zip** inside the **dist** folder. 
+6. Use the *adaptor-fs-\<VERSION\>-withlib.jar*
 
 ## Deployment Instructions
 1. Download the [Filesystem v4.1.0 installer](https://github.com/googlegsa/filesystem/releases/download/v4.1.0/fs-install-4.1.0.exe)
